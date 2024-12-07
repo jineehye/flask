@@ -5,7 +5,7 @@ import random
 import json
 import os
 from datetime import datetime
-import subprocess
+import torch
 
 # Flask app initialization
 app = Flask(__name__)
@@ -14,7 +14,7 @@ CORS(app)
 # Default model initialization (starting with base model)
 model_name = "facebook/blenderbot-400M-distill"  # Default BlenderBot model
 tokenizer = BlenderbotTokenizer.from_pretrained(model_name)
-model = BlenderbotForConditionalGeneration.from_pretrained(model_name)
+model = BlenderbotForConditionalGeneration.from_pretrained(model_name, weights_only=True)
 
 # Sentiment analysis pipeline
 sentiment_analyzer = pipeline("sentiment-analysis")
@@ -47,7 +47,7 @@ class MentalHealthDiary:
 
         # Use Blenderbot for dynamic response generation
         inputs = tokenizer(user_input, return_tensors="pt")
-        reply_ids = model.generate(**inputs)
+        reply_ids = model.generate(inputs, max_length=50, num_beams=5, early_stopping=True)
         model_response = tokenizer.decode(reply_ids[0], skip_special_tokens=True)
 
         # Sentiment-based empathy
@@ -84,22 +84,6 @@ class MentalHealthDiary:
         except Exception as e:
             return f"Error saving conversation: {e}"
 
-    def retrain_model(self):
-        print("Starting model retraining...")
-        try:
-            # retrain_blenderbot.py 스크립트 실행
-            subprocess.run(["python", "retrain_blenderbot.py"], check=True)
-            print("Model retrained successfully!")
-
-            # 재학습된 모델 다시 로드
-            global tokenizer, model
-            tokenizer = BlenderbotTokenizer.from_pretrained("blenderbot-finetuned")
-            model = BlenderbotForConditionalGeneration.from_pretrained("blenderbot-finetuned")
-            self.model_finetuned = True  # Mark as fine-tuned
-            print("Fine-Tuned model reloaded successfully!")
-        except subprocess.CalledProcessError as e:
-            print(f"Error during retraining: {e}")
-
     def process_user_input(self, user_input):
         sentiment = self.analyze_sentiment(user_input)
 
@@ -110,10 +94,6 @@ class MentalHealthDiary:
         self.conversation_log.append({"timestamp": datetime.now().isoformat(),
                                        "user_input": user_input,
                                        "ai_response": ai_response})
-
-        # Retrain model after 5 interactions
-        if len(self.conversation_log) >= 5 and not self.model_finetuned:
-            self.retrain_model()
 
         return ai_response
 
