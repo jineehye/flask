@@ -13,7 +13,8 @@ app = Flask(__name__)
 CORS(app)
 
 # Default model initialization (starting with base model)
-model_name = "sshleifer/tiny-gpt2"  # 예: 더 작은 GPT 모델
+#model_name = "sshleifer/tiny-gpt2"  # 예: 더 작은 GPT 모델
+model_name = "facebook/blenderbot-400M-distill"  # Default BlenderBot mode
 
 # 모델과 토크나이저를 로드할 때 weights_only=True 적용
 def load_model_and_tokenizer(model_name):
