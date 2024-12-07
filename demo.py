@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from transformers import BlenderbotTokenizer, BlenderbotForConditionalGeneration, pipeline
-import torch
 import random
 import json
 import os
@@ -13,16 +12,9 @@ app = Flask(__name__)
 CORS(app)
 
 # Default model initialization (starting with base model)
-#model_name = "sshleifer/tiny-gpt2"  # 예: 더 작은 GPT 모델
-model_name = "facebook/blenderbot-400M-distill"  # Default BlenderBot mode
-
-# 모델과 토크나이저를 로드할 때 weights_only=True 적용
-def load_model_and_tokenizer(model_name):
-    tokenizer = BlenderbotTokenizer.from_pretrained(model_name)
-    model = BlenderbotForConditionalGeneration.from_pretrained(model_name, torch_dtype=torch.float32, weights_only=True)
-    return tokenizer, model
-
-tokenizer, model = load_model_and_tokenizer(model_name)
+model_name = "facebook/blenderbot-400M-distill"  # Default BlenderBot model
+tokenizer = BlenderbotTokenizer.from_pretrained(model_name)
+model = BlenderbotForConditionalGeneration.from_pretrained(model_name)
 
 # Sentiment analysis pipeline
 sentiment_analyzer = pipeline("sentiment-analysis")
@@ -101,7 +93,8 @@ class MentalHealthDiary:
 
             # 재학습된 모델 다시 로드
             global tokenizer, model
-            tokenizer, model = load_model_and_tokenizer("blenderbot-finetuned")
+            tokenizer = BlenderbotTokenizer.from_pretrained("blenderbot-finetuned")
+            model = BlenderbotForConditionalGeneration.from_pretrained("blenderbot-finetuned")
             self.model_finetuned = True  # Mark as fine-tuned
             print("Fine-Tuned model reloaded successfully!")
         except subprocess.CalledProcessError as e:
