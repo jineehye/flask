@@ -12,7 +12,8 @@ app = Flask(__name__)
 CORS(app)
 
 # Default model initialization (starting with base model)
-model_name = "facebook/blenderbot-400M-distill"  # Default BlenderBot model
+#model_name = "facebook/blenderbot-400M-distill"  # Default BlenderBot model
+model_name = "sshleifer/tiny-gpt2"  # 예: 더 작은 GPT 모델
 tokenizer = BlenderbotTokenizer.from_pretrained(model_name)
 model = BlenderbotForConditionalGeneration.from_pretrained(model_name)
 
